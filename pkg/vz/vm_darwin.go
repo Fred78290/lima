@@ -27,6 +27,7 @@ import (
 	"github.com/lima-vm/lima/pkg/networks"
 	"github.com/lima-vm/lima/pkg/networks/usernet"
 	"github.com/lima-vm/lima/pkg/osutil"
+	"github.com/lima-vm/lima/pkg/ptr"
 	"github.com/lima-vm/lima/pkg/store"
 	"github.com/lima-vm/lima/pkg/store/filenames"
 	"github.com/sirupsen/logrus"
@@ -238,26 +239,24 @@ func attachPlatformConfig(driver *driver.BaseDriver, vmConfig *vz.VirtualMachine
 	}
 
 	// nested virt
-	if *driver.Instance.Config.NestedVirtualization {
-		macOSProductVersion, err := osutil.ProductVersion()
-		if err != nil {
-			return fmt.Errorf("failed to get macOS product version: %w", err)
-		}
+	if macOSProductVersion, err := osutil.ProductVersion(); err == nil {
+		if macOSProductVersion.Compare(*semver.New("15.0.0")) >= 0 && vz.IsNestedVirtualizationSupported() {
+			if driver.Instance.Config.NestedVirtualization == nil {
+				driver.Instance.Config.NestedVirtualization = ptr.Of(true)
+			}
 
-		if macOSProductVersion.LessThan(*semver.New("15.0.0")) {
-			return errors.New("nested virtualization requires macOS 15 or newer")
-		}
+			if *driver.Instance.Config.NestedVirtualization {
+				if err = platformConfig.SetNestedVirtualizationEnabled(true); err != nil {
+					return fmt.Errorf("cannot enable nested virtualization: %w", err)
+				}
 
-		if !vz.IsNestedVirtualizationSupported() {
-			return errors.New("nested virtualization is not supported on this device")
+				vmConfig.SetPlatformVirtualMachineConfiguration(platformConfig)
+			}
 		}
-
-		if err := platformConfig.SetNestedVirtualizationEnabled(true); err != nil {
-			return fmt.Errorf("cannot enable nested virtualization: %w", err)
-		}
+	} else {
+		return fmt.Errorf("failed to get macOS product version: %w", err)
 	}
 
-	vmConfig.SetPlatformVirtualMachineConfiguration(platformConfig)
 	return nil
 }
 
