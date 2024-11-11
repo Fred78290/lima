@@ -37,6 +37,7 @@ declare -A CHECKS=(
 	["mount-path-with-spaces"]=""
 	["provision-ansible"]=""
 	["param-env-variables"]=""
+	["set-user"]=""
 )
 
 case "$NAME" in
@@ -63,6 +64,7 @@ case "$NAME" in
 	CHECKS["mount-path-with-spaces"]="1"
 	CHECKS["provision-ansible"]="1"
 	CHECKS["param-env-variables"]="1"
+	CHECKS["set-user"]="1"
 	;;
 "docker")
 	CONTAINER_ENGINE="docker"
@@ -172,6 +174,11 @@ if [[ -n ${CHECKS["param-env-variables"]} ]]; then
 	limactl shell "$NAME" test -e /tmp/param-user
 fi
 
+if [[ -n ${CHECKS["set-user"]} ]]; then
+	INFO 'Testing that user settings can be provided by lima.yaml'
+	limactl shell "$NAME" grep "^john:x:4711:4711:John Doe:/home/john-john" /etc/passwd
+fi
+
 INFO "Testing proxy settings are imported"
 got=$(limactl shell "$NAME" env | grep FTP_PROXY)
 # Expected: FTP_PROXY is set in addition to ftp_proxy, localhost is replaced
@@ -279,7 +286,7 @@ if [[ -n ${CHECKS["port-forwards"]} ]]; then
 	"${scriptdir}/test-port-forwarding.pl" "${NAME}"
 
 	if [[ -n ${CHECKS["container-engine"]} || ${NAME} == "alpine"* ]]; then
-		INFO "Testing that \"${CONTAINER_ENGINE} run\" binds to 0.0.0.0 by default and is forwarded to the host"
+		INFO "Testing that \"${CONTAINER_ENGINE} run\" binds to 0.0.0.0 and is forwarded to the host (non-default behavior, configured via test-port-forwarding.pl)"
 		if [ "$(uname)" = "Darwin" ]; then
 			# macOS runners seem to use `localhost` as the hostname, so the perl lookup just returns `127.0.0.1`
 			hostip=$(system_profiler SPNetworkDataType -json | jq -r 'first(.SPNetworkDataType[] | select(.ip_address) | .ip_address) | first')
@@ -300,9 +307,17 @@ if [[ -n ${CHECKS["port-forwards"]} ]]; then
 			fi
 			limactl shell "$NAME" $sudo $CONTAINER_ENGINE info
 			limactl shell "$NAME" $sudo $CONTAINER_ENGINE pull --quiet ${nginx_image}
-			limactl shell "$NAME" $sudo $CONTAINER_ENGINE run -d --name nginx -p 8888:80 ${nginx_image}
 
+			limactl shell "$NAME" $sudo $CONTAINER_ENGINE run -d --name nginx -p 8888:80 ${nginx_image}
 			timeout 3m bash -euxc "until curl -f --retry 30 --retry-connrefused http://${hostip}:8888; do sleep 3; done"
+			limactl shell "$NAME" $sudo $CONTAINER_ENGINE rm -f nginx
+
+			if [ "$(uname)" = "Darwin" ]; then
+				# Only macOS can bind to port 80 without root
+				limactl shell "$NAME" $sudo $CONTAINER_ENGINE run -d --name nginx -p 127.0.0.1:80:80 ${nginx_image}
+				timeout 3m bash -euxc "until curl -f --retry 30 --retry-connrefused http://localhost:80; do sleep 3; done"
+				limactl shell "$NAME" $sudo $CONTAINER_ENGINE rm -f nginx
+			fi
 		fi
 	fi
 	set +x

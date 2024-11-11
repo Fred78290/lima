@@ -8,16 +8,18 @@ import (
 	"net"
 	"path/filepath"
 	"testing"
+
+	"gotest.tools/v3/assert"
 )
 
-const vmnetMaxPacketSize = 1514
-const packetsCount = 1000
+const (
+	vmnetMaxPacketSize = 1514
+	packetsCount       = 1000
+)
 
 func TestDialQemu(t *testing.T) {
 	listener, err := listenUnix(t.TempDir())
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NilError(t, err)
 	defer listener.Close()
 	t.Logf("Listening at %q", listener.Addr())
 
@@ -32,15 +34,11 @@ func TestDialQemu(t *testing.T) {
 
 	// Connect to the fake vmnet server.
 	client, err := DialQemu(listener.Addr().String())
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NilError(t, err)
 	t.Log("Connected to fake vment server")
 
 	dgramConn, err := net.FileConn(client)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NilError(t, err)
 
 	vzConn := packetConn{Conn: dgramConn}
 	defer vzConn.Close()
@@ -66,7 +64,7 @@ func TestDialQemu(t *testing.T) {
 
 		// quit packet format:
 		//     0-4:     "quit"
-		copy(buf[:4], []byte("quit"))
+		copy(buf[:4], "quit")
 		if _, err := vzConn.Write(buf[:4]); err != nil {
 			errc <- err
 			return
@@ -83,31 +81,21 @@ func TestDialQemu(t *testing.T) {
 	t.Logf("Receiving and verifying data packets...")
 	for i := 0; i < packetsCount; i++ {
 		n, err := vzConn.Read(buf)
-		if err != nil {
-			t.Fatal(err)
-		}
-		if n < vmnetMaxPacketSize {
-			t.Fatalf("Expected %d bytes, got %d", vmnetMaxPacketSize, n)
-		}
+		assert.NilError(t, err)
+		assert.Assert(t, n >= vmnetMaxPacketSize, "unexpected number of bytes")
 
 		number := binary.BigEndian.Uint32(buf[:4])
-		if number != uint32(i) {
-			t.Fatalf("Expected packet %d, got packet %d", i, number)
-		}
+		assert.Equal(t, number, uint32(i), "unexpected packet")
 
 		for j := 4; j < vmnetMaxPacketSize; j++ {
-			if buf[j] != 0x55 {
-				t.Fatalf("Expected byte 0x55 at offset %d, got 0x%02x", j, buf[j])
-			}
+			assert.Equal(t, buf[j], byte(0x55), "unexpected byte at offset %d", j)
 		}
 	}
 	t.Logf("Received and verified %d data packets", packetsCount)
 
 	for i := 0; i < 2; i++ {
 		err := <-errc
-		if err != nil {
-			t.Fatal(err)
-		}
+		assert.NilError(t, err)
 	}
 }
 

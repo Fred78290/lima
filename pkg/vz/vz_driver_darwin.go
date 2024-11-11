@@ -37,6 +37,7 @@ var knownYamlProperties = []string{
 	"Images",
 	"Memory",
 	"Message",
+	"MinimumLimaVersion",
 	"Mounts",
 	"MountType",
 	"MountTypesUnsupported",
@@ -54,6 +55,7 @@ var knownYamlProperties = []string{
 	"SSH",
 	"TimeZone",
 	"UpgradePackages",
+	"User",
 	"Video",
 	"VMType",
 }

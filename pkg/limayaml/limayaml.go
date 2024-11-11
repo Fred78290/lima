@@ -47,6 +47,7 @@ type LimaYAML struct {
 	Plain                *bool          `yaml:"plain,omitempty" json:"plain,omitempty" jsonschema:"nullable"`
 	TimeZone             *string        `yaml:"timezone,omitempty" json:"timezone,omitempty" jsonschema:"nullable"`
 	NestedVirtualization *bool          `yaml:"nestedVirtualization,omitempty" json:"nestedVirtualization,omitempty" jsonschema:"nullable"`
+	User                 User           `yaml:"user,omitempty" json:"user,omitempty"`
 }
 
 type (
@@ -82,6 +83,13 @@ var (
 	MountTypes = []MountType{REVSSHFS, NINEP, VIRTIOFS, WSLMount}
 	VMTypes    = []VMType{QEMU, VZ, WSL2}
 )
+
+type User struct {
+	Name    *string `yaml:"name,omitempty" json:"name,omitempty" jsonschema:"nullable"`
+	Comment *string `yaml:"comment,omitempty" json:"comment,omitempty" jsonschema:"nullable"`
+	Home    *string `yaml:"home,omitempty" json:"home,omitempty" jsonschema:"nullable"`
+	UID     *uint32 `yaml:"uid,omitempty" json:"uid,omitempty" jsonschema:"nullable"`
+}
 
 type VMOpts struct {
 	QEMU QEMUOpts `yaml:"qemu,omitempty" json:"qemu,omitempty"`
@@ -266,8 +274,9 @@ type Network struct {
 	// VZNAT uses VZNATNetworkDeviceAttachment. Needs VZ. No root privilege is required.
 	VZNAT *bool `yaml:"vzNAT,omitempty" json:"vzNAT,omitempty"`
 
-	MACAddress string `yaml:"macAddress,omitempty" json:"macAddress,omitempty"`
-	Interface  string `yaml:"interface,omitempty" json:"interface,omitempty"`
+	MACAddress string  `yaml:"macAddress,omitempty" json:"macAddress,omitempty"`
+	Interface  string  `yaml:"interface,omitempty" json:"interface,omitempty"`
+	Metric     *uint32 `yaml:"metric,omitempty" json:"metric,omitempty"`
 }
 
 type HostResolver struct {

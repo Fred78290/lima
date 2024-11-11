@@ -5,7 +5,7 @@ go 1.22.0
 require (
 	al.essio.dev/pkg/shellescape v1.5.1
 	github.com/AlecAivazis/survey/v2 v2.3.7
-	github.com/Code-Hex/vz/v3 v3.2.0
+	github.com/Code-Hex/vz/v3 v3.4.0
 	github.com/Microsoft/go-winio v0.6.2
 	github.com/apparentlymart/go-cidr v1.1.0
 	github.com/balajiv113/fd v0.0.0-20230330094840-143eec500f3e
@@ -19,13 +19,13 @@ require (
 	github.com/digitalocean/go-qemu v0.0.0-20221209210016-f035778c97f7
 	github.com/diskfs/go-diskfs v1.4.1
 	github.com/docker/go-units v0.5.0
-	github.com/elastic/go-libaudit/v2 v2.5.0
+	github.com/elastic/go-libaudit/v2 v2.6.0
 	github.com/foxcpp/go-mockdns v1.1.0
-	github.com/goccy/go-yaml v1.13.0
+	github.com/goccy/go-yaml v1.13.6
 	github.com/google/go-cmp v0.6.0
-	github.com/google/yamlfmt v0.13.0
+	github.com/google/yamlfmt v0.14.0
 	github.com/invopop/jsonschema v0.12.0
-	github.com/lima-vm/go-qcow2reader v0.3.0
+	github.com/lima-vm/go-qcow2reader v0.4.0
 	github.com/lima-vm/sshocker v0.3.4
 	github.com/mattn/go-isatty v0.0.20
 	github.com/mattn/go-shellwords v1.0.12
@@ -43,9 +43,9 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/wk8/go-ordered-map/v2 v2.1.8
 	golang.org/x/net v0.30.0
-	golang.org/x/sync v0.8.0
-	golang.org/x/sys v0.26.0
-	golang.org/x/text v0.19.0
+	golang.org/x/sync v0.9.0
+	golang.org/x/sys v0.27.0
+	golang.org/x/text v0.20.0
 	google.golang.org/grpc v1.67.1
 	google.golang.org/protobuf v1.35.1
 	gopkg.in/op/go-logging.v1 v1.0.0-20160211212156-b2cb9fa56473
@@ -119,8 +119,6 @@ require (
 	github.com/u-root/uio v0.0.0-20240224005618-d2acac8f3701 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	github.com/yuin/gopher-lua v1.1.1 // indirect
-	go.uber.org/atomic v1.7.0 // indirect
-	go.uber.org/multierr v1.7.0 // indirect
 	golang.org/x/crypto v0.28.0 // indirect
 	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56 // indirect
 	golang.org/x/mod v0.20.0 // indirect
